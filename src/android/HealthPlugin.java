@@ -172,6 +172,8 @@ public class HealthPlugin extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         this.cordova = cordova;
+
+        Log.i(TAG, "JUPE Health");
     }
 
     // called once authorisation is completed
