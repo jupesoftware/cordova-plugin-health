@@ -178,9 +178,9 @@ public class HealthPlugin extends CordovaPlugin {
         super.initialize(cordova, webView);
         this.cordova = cordova;
 
-        Log.i(TAG, "JUPE HealthPlugin.initialize()");
-        Context context = cordova.getActivity().getApplicationContext();
-        HealthJobService.scheduleJob(context);
+//        Log.i(TAG, "JUPE HealthPlugin.initialize()");
+//        Context context = cordova.getActivity().getApplicationContext();
+//        HealthJobService.scheduleJob(context);
     }
 
     // called once authorisation is completed
@@ -304,7 +304,7 @@ public class HealthPlugin extends CordovaPlugin {
      */
     @Override
     public boolean execute(String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-
+        Log.i(TAG, "JUPE Health action=" + action);
         if ("isAvailable".equals(action)) {
             isAvailable(callbackContext);
             return true;
@@ -405,6 +405,7 @@ public class HealthPlugin extends CordovaPlugin {
                     try {
                         registerServer(args, callbackContext);
                     } catch (Exception ex) {
+                        Log.e(TAG, "registerServer()", ex);
                         callbackContext.error(ex.getMessage());
                     }
                 }
@@ -1754,20 +1755,26 @@ public class HealthPlugin extends CordovaPlugin {
     }
 
     private void registerServer(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        Log.i(TAG, "HealthPlugin.registerServer()");
         JSONObject config = args.getJSONObject(0);
-        if (!config.has("url")) {
-            callbackContext.error("Missing argument url");
-            return;
-        }
+//        if (!config.has("url")) {
+//            callbackContext.error("Missing argument url");
+//            return;
+//        }
 
         final String url = config.getString("url");
         final String authorization = config.getString("authorization");
+
+        Log.i(TAG, "HealthPlugin.registerServer() url=" + url);
 
         Context context = cordova.getActivity().getApplicationContext();
         SharedPreferences sharedPref = context.getSharedPreferences("cordova-plugin-health", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("url", url);
         editor.putString("authorization", authorization);
-        editor.commit();
+        editor.apply();
+        Log.i(TAG, "HealthPlugin.registerServer() config saved");
+
+        HealthJobService.scheduleJob(context);
     }
 }
