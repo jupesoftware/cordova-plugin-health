@@ -96,7 +96,8 @@
 
     <source-file src="src/android/HealthPlugin.java" target-dir="src/org/apache/cordova/health/" />
 	<source-file src="src/android/HealthJobService.java" target-dir="src/org/apache/cordova/health/" />
-	
+	<source-file src="src/android/BootReceiver.java" target-dir="src/org/apache/cordova/health/" />
+
 	<config-file target="AndroidManifest.xml" parent="/manifest/application">
 		<service
 			 android:name="org.apache.cordova.health.HealthJobService"
