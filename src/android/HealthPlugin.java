@@ -2,8 +2,13 @@ package org.apache.cordova.health;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -173,7 +178,9 @@ public class HealthPlugin extends CordovaPlugin {
         super.initialize(cordova, webView);
         this.cordova = cordova;
 
-        Log.i(TAG, "JUPE Health");
+        Log.i(TAG, "JUPE HealthPlugin.initialize()");
+        Context context = cordova.getActivity().getApplicationContext();
+        HealthJobService.scheduleJob(context);
     }
 
     // called once authorisation is completed
@@ -385,6 +392,18 @@ public class HealthPlugin extends CordovaPlugin {
                 public void run() {
                     try {
                         delete(args, callbackContext);
+                    } catch (Exception ex) {
+                        callbackContext.error(ex.getMessage());
+                    }
+                }
+            });
+            return true;
+        } else if ("registerServer".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        registerServer(args, callbackContext);
                     } catch (Exception ex) {
                         callbackContext.error(ex.getMessage());
                     }
@@ -1732,5 +1751,23 @@ public class HealthPlugin extends CordovaPlugin {
                         }
                     }
                 });
+    }
+
+    private void registerServer(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        JSONObject config = args.getJSONObject(0);
+        if (!config.has("url")) {
+            callbackContext.error("Missing argument url");
+            return;
+        }
+
+        final String url = config.getString("url");
+        final String authorization = config.getString("authorization");
+
+        Context context = cordova.getActivity().getApplicationContext();
+        SharedPreferences sharedPref = context.getSharedPreferences("cordova-plugin-health", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("url", url);
+        editor.putString("authorization", authorization);
+        editor.commit();
     }
 }

@@ -197,6 +197,10 @@ Health.prototype.toFitActivity = function (act) {
   else return act;
 };
 
+Health.prototype.registerServer = function (data, onSuccess, onError) {
+  exec(onSuccess, onError, "health", "registerServer", [data]);
+};
+
 cordova.addConstructor(function () {
   navigator.health = new Health();
   return navigator.health;

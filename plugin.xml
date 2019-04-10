@@ -95,6 +95,22 @@
     </config-file>
 
     <source-file src="src/android/HealthPlugin.java" target-dir="src/org/apache/cordova/health/" />
+	<source-file src="src/android/HealthJobService.java" target-dir="src/org/apache/cordova/health/" />
+	
+	<config-file target="AndroidManifest.xml" parent="/manifest/application">
+		<service
+			 android:name="org.apache.cordova.health.HealthJobService"
+			 android:permission="android.permission.BIND_JOB_SERVICE"
+			 android:exported="true">
+		</service>
+	</config-file>
+	<config-file target="AndroidManifest.xml" parent="/manifest/application">
+	    <receiver android:name="org.apache.cordova.health.BootReceiver">
+	         <intent-filter>
+	               <action android:name="android.intent.action.BOOT_COMPLETED" />
+	         </intent-filter>
+	    </receiver>
+	</config-file>
 
     <js-module src="www/android/health.js" name="health">
       <clobbers target="navigator.health" />
