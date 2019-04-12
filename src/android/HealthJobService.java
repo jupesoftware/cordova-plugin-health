@@ -41,11 +41,13 @@ public class HealthJobService extends JobService {
         // Intent service = new Intent(getApplicationContext(), LocalWordService.class);
         // getApplicationContext().startService(service);
         // Util.scheduleJob(getApplicationContext()); // reschedule the job
-        return true;
+        jobFinished(params, false); // No needsReschedule with a periodic job
+        return false;
     }
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        return true;
+        Log.i(TAG, "JUPE HealthJobService onStopJob");
+        return false;
     }
 }
