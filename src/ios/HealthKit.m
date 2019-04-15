@@ -1826,13 +1826,15 @@ static NSString *const HKPluginKeyUUID = @"UUID";
  * @param command *CDVInvokedUrlCommand
  */
 - (void)registerServer:(CDVInvokedUrlCommand *)command {
-  NSDictionary *args = command.arguments[0];
-  NSLog(@"registerServer called");
+    NSDictionary *args = command.arguments[0];
+    NSString *url = args[@"url"];
+    NSString *authorization = args[@"authorization"];
+    NSLog(@"registerServer called %@", args);
+    NSLog(@"registerServer url %@", url);
+    NSLog(@"registerServer authorization %@", authorization);
 
-  dispatch_sync(dispatch_get_main_queue(), ^{
-      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(int)0];
-      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-  });
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 @end
