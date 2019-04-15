@@ -1820,6 +1820,21 @@ static NSString *const HKPluginKeyUUID = @"UUID";
   }];
 }
 
+/**
+ * Register server
+ *
+ * @param command *CDVInvokedUrlCommand
+ */
+- (void)registerServer:(CDVInvokedUrlCommand *)command {
+  NSDictionary *args = command.arguments[0];
+  NSLog(@"registerServer called");
+
+  dispatch_sync(dispatch_get_main_queue(), ^{
+      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(int)0];
+      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+  });
+}
+
 @end
 
 #pragma clang diagnostic pop

@@ -577,7 +577,8 @@ Health.prototype.delete = function (data, onSuccess, onError) {
 };
 
 Health.prototype.registerServer = function (data, onSuccess, onError) {
-  exec(onSuccess, onError, "health", "registerServer", [data]);
+  // exec(onSuccess, onError, "health", "registerServer", [data]);
+  window.plugins.healthkit.registerServer(data, onSuccess, onError);
 };
 
 cordova.addConstructor(function () {

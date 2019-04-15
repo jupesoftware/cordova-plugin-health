@@ -82,6 +82,7 @@ define('readGender', {noArgs: true});
 define('readFitzpatrickSkinType', {noArgs: true});
 define('findWorkouts');
 define('delete');
+define('registerServer');
 define('readWeight');
 define('readHeight');
 define('readBloodType', {noArgs: true});
@@ -113,6 +114,7 @@ define('querySampleType', {required: 'sampleType'}, hasValidDates);
 define('querySampleTypeAggregated', {required: 'sampleType'}, hasValidDates);
 
 define('deleteSamples', {required: 'sampleType'}, hasValidDates);
+
 
 define('queryCorrelationType', {required: 'correlationType'}, hasValidDates);
 define('saveSample', {required: 'sampleType'}, hasValidDates);

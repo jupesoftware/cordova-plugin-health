@@ -150,4 +150,11 @@
  */
 - (void) deleteSamples:(CDVInvokedUrlCommand*)command;
 
+/**
+ * Register server
+ *
+ * @param command *CDVInvokedUrlCommand
+ */
+- (void) registerServer:(CDVInvokedUrlCommand*)command;
+
 @end

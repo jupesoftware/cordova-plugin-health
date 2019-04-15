@@ -112,7 +112,7 @@ public class HealthJobService extends JobService {
         return calendar.getTime();
     }
 
-    private void steps() {
+    private int steps() {
         DataReadRequest.Builder readRequestBuilder = new DataReadRequest.Builder();
         long st = startOfDay(new Date()).getTime();
         readRequestBuilder.setTimeRange(st, new Date().getTime(), TimeUnit.MILLISECONDS);
@@ -127,6 +127,8 @@ public class HealthJobService extends JobService {
         readRequestBuilder.read(filteredStepsSource);
 
         DataReadResult dataReadResult = Fitness.HistoryApi.readData(mClient, readRequestBuilder.build()).await();
+
+        int totalSteps = 0;
 
         if (dataReadResult.getStatus().isSuccess()) {
             Log.i(TAG, "JUPE dataReadResult success");
@@ -148,12 +150,17 @@ public class HealthJobService extends JobService {
                     //reference for fields: https://developers.google.com/android/reference/com/google/android/gms/fitness/data/Field.html
                     //if (DT.equals(DataType.TYPE_STEP_COUNT_DELTA)) {
                     int steps = datapoint.getValue(Field.FIELD_STEPS).asInt();
+                    totalSteps += steps;
                     Log.i(TAG, "JUPE HealthJobService steps " + steps);
                     //}
                 }
             }
+
+            Log.i(TAG, "JUPE HealthJobService total steps " + totalSteps);
         } else {
             Log.i(TAG, "JUPE dataReadResult no success " + dataReadResult.getStatus());
         }
+
+        return totalSteps;
     }
 }
