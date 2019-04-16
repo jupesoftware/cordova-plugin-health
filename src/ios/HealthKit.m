@@ -31,10 +31,79 @@ static NSString *const HKPluginKeyUUID = @"UUID";
 
 @implementation AppDelegate(AppDelegate)
 
+
+
 -(void)application:(UIApplication *)application performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
     NSLog(@"JUPE AppDelegate received fetch event");
-    completionHandler(UIBackgroundFetchResultNewData);
+    HKHealthStore *healthStore = [[HKHealthStore alloc] init];
+    NSLog(@"JUPE AppDelegate isHealthDataAvailable %d", [HKHealthStore isHealthDataAvailable]);
+
+    @try {
+
+        HKQuantityType *type = [HKSampleType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
+
+        NSDate *today = [NSDate date];
+        NSDate *startOfDay = [[NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian] startOfDayForDate:today];
+
+        NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startOfDay endDate:today options:HKQueryOptionStrictStartDate];
+        NSDateComponents *interval = [[NSDateComponents alloc] init];
+        interval.day = 1;
+
+        HKStatisticsCollectionQuery *query = [[HKStatisticsCollectionQuery alloc] initWithQuantityType:type quantitySamplePredicate:predicate options:HKStatisticsOptionCumulativeSum anchorDate:startOfDay intervalComponents:interval];
+
+        query.initialResultsHandler = ^(HKStatisticsCollectionQuery * _Nonnull query, HKStatisticsCollection * _Nullable result, NSError * _Nullable error) {
+            if (error != nil) {
+                // TODO
+                NSLog(@"initialResultsHandler Error %@", error);
+                completionHandler(UIBackgroundFetchResultNewData);
+            } else {
+                [result enumerateStatisticsFromDate:startOfDay toDate:today withBlock:^(HKStatistics * _Nonnull result, BOOL * _Nonnull stop) {
+                    HKQuantity *quantity = [result sumQuantity];
+                    double steps = [quantity doubleValueForUnit:[HKUnit countUnit]];
+                    NSLog(@"Steps : %f", steps);
+
+                    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+                    NSString *urlString = [userDefaults objectForKey:@"health-server-url"];
+                    NSString *authorization = [userDefaults objectForKey:@"health-server-authorization"];
+
+                    NSDictionary *tmp = [[NSDictionary alloc] initWithObjectsAndKeys:
+                                         [NSNumber numberWithInt:steps], @"steps",
+                                         nil];
+                    NSError *error;
+                    NSData *postdata = [NSJSONSerialization dataWithJSONObject:tmp options:0 error:&error];
+
+                    NSURL *url = [NSURL URLWithString:urlString];
+                    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+
+                    [request setHTTPMethod:@"POST"];
+                    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+                    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                    [request setValue:authorization forHTTPHeaderField:@"Authorization"];
+                    // [request setValue:[NSString stringWithFormat:@"%d", [postdata length]] forHTTPHeaderField:@"Content-Length"];
+                    [request setHTTPBody: postdata];
+
+                    NSURLSession *session = [NSURLSession sharedSession];
+                    [[session dataTaskWithRequest:request
+                                completionHandler:^(NSData *data,
+                                                    NSURLResponse *response,
+                                                    NSError *error) {
+                                    // handle response
+                                    NSLog(@"Done sending to server");
+                                    completionHandler(UIBackgroundFetchResultNewData);
+                                }] resume];
+                }];
+            }
+        };
+
+        [healthStore executeQuery:query];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"performFetchWithCompletionHandler Exception %@", exception.reason);
+    }
+    @finally {
+        NSLog(@"performFetchWithCompletionHandler Finally condition");
+    }
 }
 
 @end
@@ -1856,8 +1925,41 @@ static NSString *const HKPluginKeyUUID = @"UUID";
 
     [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: 15 * 60];
 
+    [self sendToServer];
+
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+- (void)sendToServer {
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSString *urlString = [userDefaults objectForKey:@"health-server-url"];
+    NSString *authorization = [userDefaults objectForKey:@"health-server-authorization"];
+
+    NSDictionary *tmp = [[NSDictionary alloc] initWithObjectsAndKeys:
+                         [NSNumber numberWithInt:100], @"steps",
+                         nil];
+    NSError *error;
+    NSData *postdata = [NSJSONSerialization dataWithJSONObject:tmp options:0 error:&error];
+
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+
+    [request setHTTPMethod:@"POST"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:authorization forHTTPHeaderField:@"Authorization"];
+    // [request setValue:[NSString stringWithFormat:@"%d", [postdata length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody: postdata];
+
+    NSURLSession *session = [NSURLSession sharedSession];
+    [[session dataTaskWithRequest:request
+                completionHandler:^(NSData *data,
+                                NSURLResponse *response,
+                                NSError *error) {
+                // handle response
+                    NSLog(@"Done sending to server");
+            }] resume];
 }
 
 @end
