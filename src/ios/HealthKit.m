@@ -1,6 +1,7 @@
 #import "HealthKit.h"
 #import "HKHealthStore+AAPLExtensions.h"
 #import "WorkoutActivityConversion.h"
+#import "AppDelegate.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCNotLocalizedStringInspection"
@@ -27,6 +28,16 @@ static NSString *const HKPluginKeyMetadata = @"metadata";
 static NSString *const HKPluginKeyUUID = @"UUID";
 
 #pragma mark Categories
+
+@implementation AppDelegate(AppDelegate)
+
+-(void)application:(UIApplication *)application performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+    NSLog(@"JUPE AppDelegate received fetch event");
+    completionHandler(UIBackgroundFetchResultNewData);
+}
+
+@end
 
 // NSDictionary check if there is a value for a required key and populate an error if not present
 @interface NSDictionary (RequiredKey)
@@ -1504,7 +1515,7 @@ static NSString *const HKPluginKeyUUID = @"UUID";
 
     // NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
     NSPredicate *predicate = nil;
-    
+
     BOOL filtered = (args[@"filtered"] != nil && [args[@"filtered"] boolValue]);
     if (filtered) {
         predicate = [NSPredicate predicateWithFormat:@"metadata.%K != YES", HKMetadataKeyWasUserEntered];
@@ -1829,9 +1840,21 @@ static NSString *const HKPluginKeyUUID = @"UUID";
     NSDictionary *args = command.arguments[0];
     NSString *url = args[@"url"];
     NSString *authorization = args[@"authorization"];
+
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSLog(@"registerServer old url %@", [userDefaults objectForKey:@"health-server-url"]);
+    NSLog(@"registerServer old authorization %@", [userDefaults objectForKey:@"health-server-authorization"]);
+
+
+    [userDefaults setObject:url forKey:@"health-server-url"];
+    [userDefaults setObject:authorization forKey:@"health-server-authorization"];
+    [userDefaults synchronize];
+
     NSLog(@"registerServer called %@", args);
     NSLog(@"registerServer url %@", url);
     NSLog(@"registerServer authorization %@", authorization);
+
+    [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: 15 * 60];
 
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
