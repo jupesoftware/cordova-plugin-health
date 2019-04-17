@@ -1951,7 +1951,6 @@ static NSString *const HKPluginKeyUUID = @"UUID";
     @try {
 
         HKQuantityType *type = [HKSampleType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
-
         HKObserverQuery *query = [[HKObserverQuery alloc]initWithSampleType:type
                                                                   predicate:nil
                                                               updateHandler:^(HKObserverQuery *query, HKObserverQueryCompletionHandler completionHandler, NSError *error)
@@ -1964,7 +1963,7 @@ static NSString *const HKPluginKeyUUID = @"UUID";
 
         // HKUpdateFrequencyHourly
         [healthStore enableBackgroundDeliveryForType:type
-                                           frequency:HKUpdateFrequencyImmediate
+                                           frequency:HKUpdateFrequencyHourly
                                       withCompletion:^(BOOL success, NSError *error) {}];
     }
     @catch (NSException *exception) {
@@ -1989,11 +1988,6 @@ static NSString *const HKPluginKeyUUID = @"UUID";
         interval.day = 1;
 
         HKStatisticsCollectionQuery *query = [[HKStatisticsCollectionQuery alloc] initWithQuantityType:type quantitySamplePredicate:predicate options:HKStatisticsOptionCumulativeSum anchorDate:startOfDay intervalComponents:interval];
-
-        // HKUpdateFrequencyHourly
-        [healthStore enableBackgroundDeliveryForType:type
-                                           frequency:HKUpdateFrequencyImmediate
-                                      withCompletion:^(BOOL success, NSError *error) {}];
 
         query.initialResultsHandler = ^(HKStatisticsCollectionQuery * _Nonnull query, HKStatisticsCollection * _Nullable result, NSError * _Nullable error) {
             if (error != nil) {
