@@ -25,6 +25,11 @@ import com.google.android.gms.fitness.result.DataReadResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -158,7 +163,7 @@ public class HealthJobService extends JobService {
 
             Log.i(TAG, "JUPE HealthJobService total steps " + totalSteps);
 
-            SharedPreferences sharedPref = context.getSharedPreferences("cordova-plugin-health", Context.MODE_PRIVATE);
+            SharedPreferences sharedPref = this.getSharedPreferences("cordova-plugin-health", Context.MODE_PRIVATE);
             String url = sharedPref.getString("url", null);
             String authorization = sharedPref.getString("authorization", null);
             sendHealthToServer(url, authorization, totalSteps);
@@ -169,32 +174,36 @@ public class HealthJobService extends JobService {
         return totalSteps;
     }
 
-    private void sendHealthToServer(String urlString, String authorization, int steps) throws Exception {
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000);
-        conn.setConnectTimeout(15000);
-        conn.setRequestMethod("POST");
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
+    private void sendHealthToServer(String urlString, String authorization, int steps)  {
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
 
-        if (authorization != null) {
-            conn.setRequestProperty("Authorization", authorization);
+            if (authorization != null) {
+                conn.setRequestProperty("Authorization", authorization);
+            }
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            String json = "{ \"steps\": \"" + steps + "}";
+            Log.i(TAG, "Sending health to server: " + json);
+            writer.write(json);
+            writer.flush();
+            writer.close();
+            os.close();
+
+            conn.connect();
+            int responseCode = conn.getResponseCode();
+            Log.i(TAG, "Send health to server: " + responseCode);
+        } catch (Exception e) {
+            Log.e(TAG, "sendHealthToServer", e);
         }
-        conn.setRequestProperty("Content-Type", "application/json");
-
-        OutputStream os = conn.getOutputStream();
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(os, "UTF-8"));
-        String json = "{ \"steps\": \"" + steps + "}";
-        Log.i(GeofencePlugin.TAG, "Sending health to server: " + json);
-        writer.write(json);
-        writer.flush();
-        writer.close();
-        os.close();
-
-        conn.connect();
-        int responseCode = conn.getResponseCode();
-        Log.i(GeofencePlugin.TAG, "Send health to server: " + responseCode);
     }
 }
