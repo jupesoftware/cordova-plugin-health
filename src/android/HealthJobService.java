@@ -192,7 +192,7 @@ public class HealthJobService extends JobService {
             OutputStream os = conn.getOutputStream();
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(os, "UTF-8"));
-            String json = "{ \"steps\": \"" + steps + "}";
+            String json = "{ \"steps\": " + steps + " }";
             Log.i(TAG, "Sending health to server: " + json);
             writer.write(json);
             writer.flush();
