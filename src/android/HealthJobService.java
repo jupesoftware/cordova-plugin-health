@@ -47,9 +47,10 @@ public class HealthJobService extends JobService {
         long flexMillis = 59 * 60 * 1000; // wait 59 minutes before executing next job
 
         ComponentName serviceComponent = new ComponentName(context, HealthJobService.class);
-        JobInfo info = new JobInfo.Builder(1, serviceComponent)
-                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPersisted(true)
+
+        // .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+        // .setPersisted(false)
+        JobInfo info = new JobInfo.Builder(123, serviceComponent)
                 .setPeriodic(15 * 60 * 1000) // , flexMillis
                 .build();
 
@@ -156,7 +157,7 @@ public class HealthJobService extends JobService {
                     //if (DT.equals(DataType.TYPE_STEP_COUNT_DELTA)) {
                     int steps = datapoint.getValue(Field.FIELD_STEPS).asInt();
                     totalSteps += steps;
-                    Log.i(TAG, "JUPE HealthJobService steps " + steps);
+                    Log.v(TAG, "JUPE HealthJobService steps " + steps);
                     //}
                 }
             }
